@@ -4,7 +4,6 @@ import (
 	"PeredelanoHakaton/Entities"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -15,18 +14,16 @@ import (
 	"strings"
 )
 
-var (
-	ParseIntError = errors.New("can't parse int")
-	BadRequest    = errors.New("unsupported request")
-	BadBody       = errors.New("can't parse body")
+const (
+	ConnectionDied = "Connection to data base has died"
+	CantRead       = "Can't read from data base"
+	BadBody        = "Can't parse body"
+	CantWrite      = "Can't write to data base"
 )
 
-const (
-	getAll      = "getAll"
-	getById     = "getById"
-	unsupported = "unsupported"
-	newIssue    = "newIssue"
-)
+type DBWrapper struct {
+	Db *sql.DB
+}
 
 func readBody(body io.ReadCloser) string {
 	data := make([]byte, 1024)
@@ -50,29 +47,26 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetUserById(w http.ResponseWriter, r *http.Request) {
+func (db DBWrapper) GetUserById(w http.ResponseWriter, r *http.Request) {
 
-	db, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
+	err := db.Db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, ConnectionDied, http.StatusServiceUnavailable)
+		return
 	}
-	defer db.Close()
 	ids := mux.Vars(r)
 	sqlQuery := fmt.Sprintf("SELECT * FROM users WHERE id = %s", ids["id"])
-	rows, err := db.Query(sqlQuery)
+	rows, err := db.Db.Query(sqlQuery)
 	if err != nil {
-		print("Opsy")
+		http.Error(w, CantRead, http.StatusServiceUnavailable)
+		return
 	}
 	user := Entities.User{}
-	if err != nil {
-		print("Opsy")
-	}
 	for rows.Next() {
-		//var id int
-		//var name string
 		err = rows.Scan(&user.Id, &user.Name, &user.ContactInfo)
 		if err != nil {
-			log.Fatal("Ошибка чтения строки из результата запроса:", err)
+			http.Error(w, CantRead, http.StatusServiceUnavailable)
+			return
 		}
 		fmt.Printf("User with id %d, with name %s, with contact info %s", user.Id, user.Name, user.ContactInfo)
 	}
@@ -82,8 +76,13 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
+func (db DBWrapper) GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
 
+	err := db.Db.Ping()
+	if err != nil {
+		http.Error(w, ConnectionDied, http.StatusServiceUnavailable)
+		return
+	}
 	queryParams := r.URL.Query()
 	page, err := strconv.Atoi(queryParams.Get("page"))
 	if err != nil {
@@ -98,14 +97,25 @@ func GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
 	println(r.URL.String())
 	data := make([]Entities.User, limit)
 	for i := 0; i < limit; i++ {
-		data[i] = Entities.User{
-			Id:          i,
-			Name:        fmt.Sprintf("Foo %d", i),
-			ContactInfo: "placeholder@mailmail.com",
+		data[i] = Entities.User{}
+	}
+	rows, err := db.Db.Query(sqlQuery)
+	if err != nil {
+		http.Error(w, CantRead, http.StatusServiceUnavailable)
+		return
+	}
+	counter := 0
+	for rows.Next() {
+
+		err = rows.Scan(&data[counter].Id, &data[counter].Name, &data[counter].ContactInfo)
+		if err != nil {
+			http.Error(w, CantRead, http.StatusServiceUnavailable)
+			return
 		}
+		counter++
 	}
 
-	marshaled, err := json.Marshal(data)
+	marshaled, err := json.Marshal(data[:counter])
 	response := fmt.Sprintf("{meta: {size: %d}, data: %s}", 239, string(marshaled))
 	w.Write([]byte(response))
 	println(sqlQuery)
@@ -232,7 +242,7 @@ func PostIssue(w http.ResponseWriter, r *http.Request) {
 	bodyData := readBody(r.Body)
 	err := json.Unmarshal([]byte(bodyData), &issue)
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -255,20 +265,33 @@ func PostIssue(w http.ResponseWriter, r *http.Request) {
 	println(sqlQuery)
 }
 
-func PostUser(w http.ResponseWriter, r *http.Request) {
-	var user Entities.User
-	bodyData := readBody(r.Body)
-	err := json.Unmarshal([]byte(bodyData), &user)
+func (db DBWrapper) PostUser(w http.ResponseWriter, r *http.Request) {
+
+	err := db.Db.Ping()
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, ConnectionDied, http.StatusServiceUnavailable)
 		return
 	}
-	sqlQuery := fmt.Sprintf("INSERT INTO users (name, contactInfo) VALUES (%s, %s)",
+
+	var user Entities.User
+	bodyData := readBody(r.Body)
+	err = json.Unmarshal([]byte(bodyData), &user)
+	if err != nil {
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("INSERT INTO users (name, contact) VALUES ('%s', '%s')",
 		user.Name, user.ContactInfo,
 	)
+	println(sqlQuery)
+
+	_, err = db.Db.Exec(sqlQuery)
+	if err != nil {
+		http.Error(w, CantWrite, http.StatusServiceUnavailable)
+		return
+	}
 
 	w.Write([]byte(sqlQuery))
-	//println(sqlQuery)
 }
 
 func PostMessage(w http.ResponseWriter, r *http.Request) {
@@ -276,7 +299,7 @@ func PostMessage(w http.ResponseWriter, r *http.Request) {
 	bodyData := readBody(r.Body)
 	err := json.Unmarshal([]byte(bodyData), &message)
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
 		return
 	}
 	sqlQuery := fmt.Sprintf("INSERT INTO messages (data, date, issue_id) VALUES (%s, %s, %d)",
@@ -292,7 +315,7 @@ func PostOrganisation(w http.ResponseWriter, r *http.Request) {
 	bodyData := readBody(r.Body)
 	err := json.Unmarshal([]byte(bodyData), &organisation)
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
 		return
 	}
 	sqlQuery := fmt.Sprintf("INSERT INTO organisations (country, name, contacts, type) VALUES (%s, %s, %s, %s)",
@@ -303,10 +326,21 @@ func PostOrganisation(w http.ResponseWriter, r *http.Request) {
 	//println(sqlQuery)
 }
 
-func DeleteUserById(w http.ResponseWriter, r *http.Request) {
+func (db DBWrapper) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	err := db.Db.Ping()
+	if err != nil {
+		http.Error(w, ConnectionDied, http.StatusServiceUnavailable)
+		return
+	}
 
 	ids := mux.Vars(r)
 	sqlQuery := fmt.Sprintf("DELETE FROM users WHERE id = %s", ids["id"])
+
+	_, err = db.Db.Exec(sqlQuery)
+	if err != nil {
+		http.Error(w, CantWrite, http.StatusServiceUnavailable)
+		return
+	}
 	w.Write([]byte(sqlQuery))
 
 }
@@ -335,17 +369,29 @@ func DeleteIssueById(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	var user Entities.User
-	bodyData := readBody(r.Body)
-	err := json.Unmarshal([]byte(bodyData), &user)
+func (db DBWrapper) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	err := db.Db.Ping()
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, ConnectionDied, http.StatusServiceUnavailable)
 		return
 	}
-	sqlQuery := fmt.Sprintf("UPDATE users SET name = %s, contactInfo = %s where id = %d",
+	var user Entities.User
+	bodyData := readBody(r.Body)
+	err = json.Unmarshal([]byte(bodyData), &user)
+	if err != nil {
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("UPDATE users SET name = '%s', contact = '%s' where id = %d",
 		user.Name, user.ContactInfo, user.Id,
 	)
+
+	println(sqlQuery)
+	_, err = db.Db.Exec(sqlQuery)
+	if err != nil {
+		http.Error(w, CantWrite, http.StatusServiceUnavailable)
+		return
+	}
 
 	w.Write([]byte(sqlQuery))
 	//println(sqlQuery)
@@ -356,7 +402,7 @@ func UpdateMessage(w http.ResponseWriter, r *http.Request) {
 	bodyData := readBody(r.Body)
 	err := json.Unmarshal([]byte(bodyData), &message)
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
 		return
 	}
 	sqlQuery := fmt.Sprintf("UPDATE messages SET data = %s, date=%s, issue_id=%d where id=%d",
@@ -372,7 +418,7 @@ func UpdateOrganisation(w http.ResponseWriter, r *http.Request) {
 	bodyData := readBody(r.Body)
 	err := json.Unmarshal([]byte(bodyData), &organisation)
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
 		return
 	}
 	sqlQuery := fmt.Sprintf("UPDATE organisations SET country = %s, name=%s, contacts=%s, type=%s WHERE id = %d",
@@ -388,7 +434,7 @@ func UpdateIssue(w http.ResponseWriter, r *http.Request) {
 	bodyData := readBody(r.Body)
 	err := json.Unmarshal([]byte(bodyData), &issue)
 	if err != nil {
-		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, BadBody, http.StatusUnprocessableEntity)
 		return
 	}
 	sqlQuery := fmt.Sprintf("UPDATE issues SET status = %s, description=%s, organisation_id=%d, validation=%t WHERE id = %d",
