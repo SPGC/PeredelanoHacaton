@@ -2,12 +2,17 @@ package Handlers
 
 import (
 	"PeredelanoHakaton/Entities"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -23,10 +28,56 @@ const (
 	newIssue    = "newIssue"
 )
 
+func readBody(body io.ReadCloser) string {
+	data := make([]byte, 1024)
+	sb := strings.Builder{}
+	var readBytes int
+	var err error = nil
+	for true {
+		if err != nil {
+			break
+		}
+		readBytes, err = body.Read(data)
+		if readBytes == 0 {
+			continue
+		}
+		sb.Write(data[:readBytes])
+	}
+	return sb.String()
+}
+
+func Ping(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func GetUserById(w http.ResponseWriter, r *http.Request) {
 
+	db, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 	ids := mux.Vars(r)
-	sqlQuery := fmt.Sprintf("SELECT * FROM users WHERE id = %d", ids["id"])
+	sqlQuery := fmt.Sprintf("SELECT * FROM users WHERE id = %s", ids["id"])
+	rows, err := db.Query(sqlQuery)
+	if err != nil {
+		print("Opsy")
+	}
+	user := Entities.User{}
+	if err != nil {
+		print("Opsy")
+	}
+	for rows.Next() {
+		//var id int
+		//var name string
+		err = rows.Scan(&user.Id, &user.Name, &user.ContactInfo)
+		if err != nil {
+			log.Fatal("Ошибка чтения строки из результата запроса:", err)
+		}
+		fmt.Printf("User with id %d, with name %s, with contact info %s", user.Id, user.Name, user.ContactInfo)
+	}
+
+	println(sqlQuery)
 	w.Write([]byte(sqlQuery))
 
 }
@@ -63,7 +114,7 @@ func GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
 func GetOrganisationById(w http.ResponseWriter, r *http.Request) {
 
 	ids := mux.Vars(r)
-	sqlQuery := fmt.Sprintf("SELECT * FROM organisations WHERE id = %d", ids["id"])
+	sqlQuery := fmt.Sprintf("SELECT * FROM organisations WHERE id = %s", ids["id"])
 	w.Write([]byte(sqlQuery))
 
 }
@@ -102,7 +153,7 @@ func GetAllOrganisationWhereParam(w http.ResponseWriter, r *http.Request) {
 func GetIssueById(w http.ResponseWriter, r *http.Request) {
 
 	ids := mux.Vars(r)
-	sqlQuery := fmt.Sprintf("SELECT * FROM issues WHERE id = %d", ids["id"])
+	sqlQuery := fmt.Sprintf("SELECT * FROM issues WHERE id = %s", ids["id"])
 	w.Write([]byte(sqlQuery))
 
 }
@@ -175,96 +226,175 @@ func GetAllMessagesWhereParam(w http.ResponseWriter, r *http.Request) {
 	println(sqlQuery)
 }
 
-//func GetHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
-//	requestType, entity, id, query, err := ReadUrlGet(r.URL)
-//
-//	if err != nil {
-//		if err == ParseIntError {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		} else if err == BadRequest {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		} else {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		}
-//	}
-//
-//	var sqlQuery string
-//	if requestType == getAll {
-//		page, err := strconv.Atoi(query.Get("page"))
-//		if err != nil {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		}
-//		limit, err := strconv.Atoi(query.Get("limit"))
-//		if err != nil {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		}
-//		sqlQuery = fmt.Sprintf("SELECT * FROM %s LIMIT %d OFFSET %d", entity, limit, limit*(page-1))
-//	} else if requestType == getById {
-//		sqlQuery = fmt.Sprintf("SELECT * FROM %s WHERE id = %d", entity, id)
-//
-//	}
-//	//w.Write([]byte(sqlQuery))
-//	println(sqlQuery)
-//}
-//
-//func PostHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
-//	entity, err := ReadUrlPost(r.URL)
-//
-//	if err != nil {
-//		if err == BadRequest {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		} else {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		}
-//	}
-//
-//	if entity == newIssue {
-//		var issue Entities.IssueCreationWrapper
-//		body := r.Body
-//		data := make([]byte, 1024)
-//		sb := strings.Builder{}
-//		var readBytes int
-//		var err error = nil
-//		for true {
-//			if err != nil {
-//				break
-//			}
-//			readBytes, err = body.Read(data)
-//			if readBytes == 0 {
-//				continue
-//			}
-//			sb.Write(data[:readBytes])
-//		}
-//		bodyData := sb.String()
-//		err = json.Unmarshal([]byte(bodyData), &issue)
-//		if err != nil {
-//			http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
-//			return
-//		}
-//		sqlQuery := fmt.Sprintf("PROCEDURE_NAME (%s, %s, %s, %s, %s, %s, %s)",
-//			issue.Issuer.Name,
-//			issue.Issuer.ContactInfo,
-//			issue.IssueMessage.Description,
-//			issue.ProblemCompany.Name,
-//			issue.ProblemCompany.Country,
-//			issue.ProblemCompany.ContactInfo,
-//			issue.ProblemCompany.OrgType,
-//		)
-//
-//		w.Write([]byte(sqlQuery))
-//		//println(sqlQuery)
-//	}
-//
-//	//var sqlQuery string
-//	//page, err := strconv.Atoi(query.Get("page"))
-//	//if err != nil {
-//	//	http.Error(w, err.Error(), http.StatusBadRequest)
-//	//}
-//	//limit, err := strconv.Atoi(query.Get("limit"))
-//	//if err != nil {
-//	//	http.Error(w, err.Error(), http.StatusBadRequest)
-//	//}
-//	//sqlQuery = fmt.Sprintf("SELECT * FROM %s LIMIT %d OFFSET %d", entity, limit, limit*(page-1))
-//	//
-//	//println(sqlQuery)
-//}
+func PostIssue(w http.ResponseWriter, r *http.Request) {
+
+	var issue Entities.IssueCreationWrapper
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &issue)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	db, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	sqlQuery := fmt.Sprintf("CALL insert_issue ('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+		issue.Issuer.Name,
+		issue.Issuer.ContactInfo,
+		issue.IssueMessage.Description,
+		issue.ProblemCompany.Name,
+		issue.ProblemCompany.Country,
+		issue.ProblemCompany.ContactInfo,
+		issue.ProblemCompany.OrgType,
+	)
+	_, err = db.Exec(sqlQuery)
+	w.Write([]byte(sqlQuery))
+	println(sqlQuery)
+}
+
+func PostUser(w http.ResponseWriter, r *http.Request) {
+	var user Entities.User
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &user)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("INSERT INTO users (name, contactInfo) VALUES (%s, %s)",
+		user.Name, user.ContactInfo,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
+
+func PostMessage(w http.ResponseWriter, r *http.Request) {
+	var message Entities.Message
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &message)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("INSERT INTO messages (data, date, issue_id) VALUES (%s, %s, %d)",
+		message.Data, message.Date, message.IssueId,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
+
+func PostOrganisation(w http.ResponseWriter, r *http.Request) {
+	var organisation Entities.Organisation
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &organisation)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("INSERT INTO organisations (country, name, contacts, type) VALUES (%s, %s, %s, %s)",
+		organisation.Country, organisation.Name, organisation.ContactInfo, organisation.OrgType,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
+
+func DeleteUserById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("DELETE FROM users WHERE id = %s", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func DeleteOrganisationById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("DELETE FROM organisations WHERE id = %s", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func DeleteMessageById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("DELETE FROM messages WHERE id = %s", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func DeleteIssueById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("DELETE FROM issues WHERE id = %s", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	var user Entities.User
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &user)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("UPDATE users SET name = %s, contactInfo = %s where id = %d",
+		user.Name, user.ContactInfo, user.Id,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
+
+func UpdateMessage(w http.ResponseWriter, r *http.Request) {
+	var message Entities.Message
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &message)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("UPDATE messages SET data = %s, date=%s, issue_id=%d where id=%d",
+		message.Data, message.Date, message.IssueId, message.Id,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
+
+func UpdateOrganisation(w http.ResponseWriter, r *http.Request) {
+	var organisation Entities.Organisation
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &organisation)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("UPDATE organisations SET country = %s, name=%s, contacts=%s, type=%s WHERE id = %d",
+		organisation.Country, organisation.Name, organisation.ContactInfo, organisation.OrgType, organisation.Id,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
+
+func UpdateIssue(w http.ResponseWriter, r *http.Request) {
+	var issue Entities.Issue
+	bodyData := readBody(r.Body)
+	err := json.Unmarshal([]byte(bodyData), &issue)
+	if err != nil {
+		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	sqlQuery := fmt.Sprintf("UPDATE issues SET status = %s, description=%s, organisation_id=%d, validation=%t WHERE id = %d",
+		issue.Status, issue.Description, issue.OrganisationId, issue.Validation, issue.Id,
+	)
+
+	w.Write([]byte(sqlQuery))
+	//println(sqlQuery)
+}
