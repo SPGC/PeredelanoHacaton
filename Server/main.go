@@ -3,17 +3,28 @@ package main
 import (
 	"PeredelanoHakaton/Handlers"
 	"net/http"
+
+	"github.com/rs/cors"
 )
 
 func RunServer() {
-	handler := func(w http.ResponseWriter, r *http.Request) {
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173"}, // your front-end origin
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+	})
+
+	defaultHandler := func(w http.ResponseWriter, r *http.Request) {
 		//_, _ = w.Write([]byte("pong\n"))
 		//method, values := Handlers.ReadUrlGet(r.URL)
 		//println(r.Method)
 		Handlers.GetHandler(w, r, nil)
 	}
 
-	err := http.ListenAndServe(":8080", http.HandlerFunc(handler))
+	handlerWithCors := c.Handler(http.HandlerFunc(defaultHandler))
+
+	err := http.ListenAndServe(":8080", handlerWithCors)
 	if err != nil {
 		panic(err)
 	}
