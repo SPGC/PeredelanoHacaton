@@ -1,0 +1,31 @@
+# flyctl launch added from PeredelanoHacaton/.gitignore
+PeredelanoHacaton/**/.idea
+PeredelanoHacaton/**/node_modules
+PeredelanoHacaton/**/.env
+
+# flyctl launch added from PeredelanoHacaton/Front/.gitignore
+# Logs
+PeredelanoHacaton/Front/**/logs
+PeredelanoHacaton/Front/**/*.log
+PeredelanoHacaton/Front/**/npm-debug.log*
+PeredelanoHacaton/Front/**/yarn-debug.log*
+PeredelanoHacaton/Front/**/yarn-error.log*
+PeredelanoHacaton/Front/**/pnpm-debug.log*
+PeredelanoHacaton/Front/**/lerna-debug.log*
+
+PeredelanoHacaton/Front/**/node_modules
+PeredelanoHacaton/Front/**/dist
+PeredelanoHacaton/Front/**/dist-ssr
+PeredelanoHacaton/Front/**/*.local
+
+# Editor directories and files
+PeredelanoHacaton/Front/**/.vscode/*
+!PeredelanoHacaton/Front/**/.vscode/extensions.json
+PeredelanoHacaton/Front/**/.idea
+PeredelanoHacaton/Front/**/.DS_Store
+PeredelanoHacaton/Front/**/*.suo
+PeredelanoHacaton/Front/**/*.ntvs*
+PeredelanoHacaton/Front/**/*.njsproj
+PeredelanoHacaton/Front/**/*.sln
+PeredelanoHacaton/Front/**/*.sw?
+fly.toml
