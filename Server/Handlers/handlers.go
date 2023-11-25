@@ -86,33 +86,31 @@ func GetHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
 		sqlQuery = fmt.Sprintf("SELECT * FROM %s WHERE id = %d", entity, id)
 
 	}
-	w.Write([]byte(sqlQuery))
+	//w.Write([]byte(sqlQuery))
 	println(sqlQuery)
 }
 
-//func PostHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
-//	entity, err := ReadUrlPost(r.URL)
-//
-//	if err != nil {
-//		if err == ParseIntError {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		} else if err == BadRequest {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		} else {
-//			http.Error(w, err.Error(), http.StatusBadRequest)
-//		}
-//	}
-//
-//	var sqlQuery string
-//	page, err := strconv.Atoi(query.Get("page"))
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusBadRequest)
-//	}
-//	limit, err := strconv.Atoi(query.Get("limit"))
-//	if err != nil {
-//		http.Error(w, err.Error(), http.StatusBadRequest)
-//	}
-//	sqlQuery = fmt.Sprintf("SELECT * FROM %s LIMIT %d OFFSET %d", entity, limit, limit*(page-1))
-//
-//	println(sqlQuery)
-//}
+func PostHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
+	entity, err := ReadUrlPost(r.URL)
+
+	if err != nil {
+		if err == BadRequest {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+	}
+
+	var sqlQuery string
+	page, err := strconv.Atoi(query.Get("page"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	limit, err := strconv.Atoi(query.Get("limit"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	sqlQuery = fmt.Sprintf("SELECT * FROM %s LIMIT %d OFFSET %d", entity, limit, limit*(page-1))
+
+	println(sqlQuery)
+}
