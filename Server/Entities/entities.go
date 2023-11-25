@@ -13,6 +13,7 @@ type Issue struct {
 	Status         string `json:"status,omitempty"`
 	Description    string `json:"description"`
 	OrganisationId int    `json:"organisation_id,omitempty"`
+	Validation     bool   `json:"validation,omitempty"`
 }
 
 type Message struct {
