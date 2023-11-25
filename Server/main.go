@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 const (
@@ -27,13 +28,21 @@ func getGETRequestType(url string) int {
 }
 
 func RunServer() {
+	router := mux.NewRouter()
 
-	defaultHandler := mux.NewRouter()
+	router.HandleFunc("/user/{id:[0-9]+}", Handlers.GetUserByIdHandler).Methods("GET")
+	router.HandleFunc("/user", Handlers.GetAllUsersWhereParam).Methods("GET")
 
-	defaultHandler.HandleFunc("/users/{id:[0-9]+}", Handlers.GetUserByIdHandler).Methods("GET")
-	defaultHandler.HandleFunc("/users", Handlers.GetAllUsersWhereParam).Methods("GET")
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173"}, // Frontend origin
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+	})
 
-	err := http.ListenAndServe(":8080", defaultHandler)
+	handlerWithCors := c.Handler(router)
+
+	err := http.ListenAndServe(":8080", handlerWithCors)
+
 	if err != nil {
 		panic(err)
 	}
