@@ -16,10 +16,14 @@ func RunServer() {
 	})
 
 	defaultHandler := func(w http.ResponseWriter, r *http.Request) {
-		//_, _ = w.Write([]byte("pong\n"))
-		//method, values := Handlers.ReadUrlGet(r.URL)
 		//println(r.Method)
-		Handlers.GetHandler(w, r, nil)
+		switch r.Method {
+		case "GET":
+			Handlers.GetHandler(w, r, nil)
+		case "POST":
+			Handlers.PostHandler(w, r, nil)
+		}
+
 	}
 
 	handlerWithCors := c.Handler(http.HandlerFunc(defaultHandler))

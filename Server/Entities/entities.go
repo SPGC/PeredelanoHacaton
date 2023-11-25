@@ -28,6 +28,8 @@ type User struct {
 	ContactInfo string `json:"contact_info"`
 }
 
-type IssueTemplate struct {
-	Issuer User
+type IssueCreationWrapper struct {
+	Issuer         User         `json:"issuer"`
+	ProblemCompany Organisation `json:"company"`
+	IssueMessage   Issue        `json:"message"`
 }
