@@ -2,11 +2,14 @@ package Handlers
 
 import (
 	"PeredelanoHakaton/Entities"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -43,10 +46,38 @@ func readBody(body io.ReadCloser) string {
 	return sb.String()
 }
 
+func Ping(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func GetUserById(w http.ResponseWriter, r *http.Request) {
 
+	db, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 	ids := mux.Vars(r)
 	sqlQuery := fmt.Sprintf("SELECT * FROM users WHERE id = %s", ids["id"])
+	rows, err := db.Query(sqlQuery)
+	if err != nil {
+		print("Opsy")
+	}
+	user := Entities.User{}
+	if err != nil {
+		print("Opsy")
+	}
+	for rows.Next() {
+		//var id int
+		//var name string
+		err = rows.Scan(&user.Id, &user.Name, &user.ContactInfo)
+		if err != nil {
+			log.Fatal("Ошибка чтения строки из результата запроса:", err)
+		}
+		fmt.Printf("User with id %d, with name %s, with contact info %s", user.Id, user.Name, user.ContactInfo)
+	}
+
+	println(sqlQuery)
 	w.Write([]byte(sqlQuery))
 
 }
@@ -204,7 +235,13 @@ func PostIssue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, BadBody.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	sqlQuery := fmt.Sprintf("PROCEDURE_NAME (%s, %s, %s, %s, %s, %s, %s)",
+
+	db, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	sqlQuery := fmt.Sprintf("CALL insert_issue ('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
 		issue.Issuer.Name,
 		issue.Issuer.ContactInfo,
 		issue.IssueMessage.Description,
@@ -213,9 +250,9 @@ func PostIssue(w http.ResponseWriter, r *http.Request) {
 		issue.ProblemCompany.ContactInfo,
 		issue.ProblemCompany.OrgType,
 	)
-
+	_, err = db.Exec(sqlQuery)
 	w.Write([]byte(sqlQuery))
-	//println(sqlQuery)
+	println(sqlQuery)
 }
 
 func PostUser(w http.ResponseWriter, r *http.Request) {

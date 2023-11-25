@@ -30,6 +30,8 @@ func getGETRequestType(url string) int {
 func RunServer() {
 	router := mux.NewRouter()
 
+	router.HandleFunc("/", Handlers.Ping).Methods("GET")
+
 	router.HandleFunc("/users/{id:[0-9]+}", Handlers.GetUserById).Methods("GET")
 	router.HandleFunc("/organisations/{id:[0-9]+}", Handlers.GetOrganisationById).Methods("GET")
 	router.HandleFunc("/issues/{id:[0-9]+}", Handlers.GetIssueById).Methods("GET")
