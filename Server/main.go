@@ -30,8 +30,8 @@ func RunServer() {
 
 	defaultHandler := mux.NewRouter()
 
-	defaultHandler.HandleFunc("/user/{id:[0-9]+}", Handlers.GetUserByIdHandler).Methods("GET")
-	defaultHandler.HandleFunc("/user", Handlers.GetAllUsersWhereParam).Methods("GET")
+	defaultHandler.HandleFunc("/users/{id:[0-9]+}", Handlers.GetUserByIdHandler).Methods("GET")
+	defaultHandler.HandleFunc("/users", Handlers.GetAllUsersWhereParam).Methods("GET")
 
 	err := http.ListenAndServe(":8080", defaultHandler)
 	if err != nil {
@@ -41,19 +41,5 @@ func RunServer() {
 
 func main() {
 	println("Server started")
-	//connStr := "user=youruser dbname=yourdb password=yourpassword host=localhost sslmode=disable"
-	//
-	//// Установка соединения с базой данных
-	//db, err := sql.Open("postgres", connStr)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer db.Close()
-	//
-	//// Проверка соединения с базой данных
-	//err = db.Ping()
-	//if err != nil {
-	//	log.Fatal("Ошибка соединения:", err)
-	//}
 	RunServer()
 }

@@ -1,10 +1,13 @@
 package Handlers
 
 import (
+	"PeredelanoHakaton/Entities"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 var (
@@ -30,11 +33,31 @@ func GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
 
-	//queryParams :=
-	//	r.URL.Query()
-	//println(r.URL.String())
-	w.Write([]byte("foobar"))
+	queryParams := r.URL.Query()
+	page, err := strconv.Atoi(queryParams.Get("page"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	limit, err := strconv.Atoi(queryParams.Get("limit"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 
+	sqlQuery := fmt.Sprintf("SELECT * FROM users LIMIT %d OFFSET %d", limit, limit*(page-1))
+	println(r.URL.String())
+	data := make([]Entities.User, limit)
+	for i := 0; i < limit; i++ {
+		data[i] = Entities.User{
+			Id:          i,
+			Name:        fmt.Sprintf("Foo %d", i),
+			ContactInfo: "placeholder@mailmail.com",
+		}
+	}
+
+	marshaled, err := json.Marshal(data)
+	response := fmt.Sprintf("{size: %d, data: %s}", 239, string(marshaled))
+	w.Write([]byte(response))
+	println(sqlQuery)
 }
 
 //func GetHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
