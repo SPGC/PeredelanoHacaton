@@ -40,8 +40,8 @@ const Sidebar = ({ isOpen = true }: SidebarProps) => {
                 </div>
             </div>
 
-            <div className="flex justify-center">
-                <SignOutButton><TbLogout size="28px" color="white" /></SignOutButton>
+            <div className="flex justify-center cursor-pointer">
+                <SignOutButton ><TbLogout size="28px" color="white" /></SignOutButton>
             </div>
         </div>
     );
