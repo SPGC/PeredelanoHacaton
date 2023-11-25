@@ -4,7 +4,7 @@ const MainPage = () => {
 
 
     return (
-        <div className="flex flex-row gap-2 text-base bg-gray-700 p-2 h-full rounded-md">
+        <div className="flex flex-row justify-center flex-wrap gap-2 text-base bg-gray-700 p-2 rounded-md">
             <TileRowInfoGeneral />
         </div>
     );

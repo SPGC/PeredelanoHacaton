@@ -16,23 +16,26 @@ function App() {
   return (
     <>
     <ClerkProvider publishableKey={clerkPubKey}>
-      <div className="bg-gray-900 text-4xl flex flex-row">
+        <SignedIn>
+        <div className="bg-gray-900 text-4xl flex flex-row">
                     <Sidebar isOpen={true} />
-                    <div className="w-full p-3 h-screen text-white">
-                        <SignedIn>
+                    <div className="w-10/12 mx-auto p-3 h-screen text-white">
+
                             <Routes>
                                 <Route path="/" element={<MainPage />} />
                                 <Route path="/dashboard" element={<DashboardPage />} />
                                 <Route path="/list" element={<ListPage />} />
                                 <Route path="/robot" element={<RobotPage />} />
                             </Routes>
-                        </SignedIn>
-                        <SignedOut>
-                            <RedirectToSignIn />
-                        </SignedOut>
+
+
 
                     </div>
       </div>
+        </SignedIn>
+        <SignedOut>
+            <RedirectToSignIn />
+        </SignedOut>
     </ClerkProvider>
     </>
   )
