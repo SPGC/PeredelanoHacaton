@@ -23,12 +23,17 @@ const TileRowInfoGeneral = () => {
     // TODO: 'Add functionality to change status + optimize responsive design for mobile'
     return (
         <>
-            <div className="flex flex-row gap-6 h-10 whitespace-nowrap p-2 w-64 justify-center bg-gray-800 rounded-md">
+            <div className="flex flex-row flex-auto gap-6 h-10 p-2 w-fit bg-gray-800 justify-center rounded-md">
+                <div className="flex whitespace-nowrap text-xl font-black flex-row gap-1 items-center">
+                    ADMIN PANEL
+                </div>
+            </div>
+            <div className="flex flex-auto flex-row gap-6 h-10 whitespace-nowrap p-2 w-64 justify-center bg-gray-800 rounded-md">
                 <div className="flex flex-row gap-1 items-center"><TbCalendar /> {formattedDate}</div>
                 <div className="flex flex-row gap-1 items-center "><TbClock /> {formattedTime}</div>
             </div>
-            <div className="flex flex-row gap-6 h-10 p-2 w-fit bg-gray-800 rounded-md">
-                <div className="flex flex-row gap-1 items-center">
+            <div className="flex flex-auto flex-row justify-center gap-6 h-10 p-2 w-fit bg-gray-800 rounded-md">
+                <div className="flex flex-row gap-1 items-center ">
                     Status:
                     <TbServer size="24px" color="green"/>
                     |
@@ -37,14 +42,10 @@ const TileRowInfoGeneral = () => {
                     <TbRobot size="24px" color="green"/>
                 </div>
             </div>
+
             <div className="flex flex-row gap-6 h-10 p-2 w-fit bg-gray-800 rounded-md">
-                <div className="flex whitespace-nowrap flex-row gap-1 items-center">
-                    Complains manager
-                </div>
-            </div>
-            <div className="flex flex-row gap-6 h-10 p-2 w-fit bg-gray-800 rounded-md">
-                <div className="flex flex-row gap-1 items-center">
-                    v.0.0.3
+                <div className="flex flex-row gap-1 items-center text-xs">
+                    v.0.0.4
                 </div>
             </div>
         </>

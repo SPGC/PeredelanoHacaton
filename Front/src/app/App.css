@@ -1,0 +1,5 @@
+.react-loading-skeleton {
+    --base-color: #374151 !important;
+    --highlight-color: #1f2937 !important;
+    @apply rounded-md !important;
+}
