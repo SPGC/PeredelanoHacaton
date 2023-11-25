@@ -32,7 +32,8 @@ func GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
 
 	//queryParams :=
 	//	r.URL.Query()
-	println(r.URL.String())
+	//println(r.URL.String())
+	w.Write([]byte("foobar"))
 
 }
 
