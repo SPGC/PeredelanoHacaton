@@ -86,6 +86,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request, dataBase *sql.DB) {
 		sqlQuery = fmt.Sprintf("SELECT * FROM %s WHERE id = %d", entity, id)
 
 	}
+	w.Write([]byte(sqlQuery))
 	println(sqlQuery)
 }
 

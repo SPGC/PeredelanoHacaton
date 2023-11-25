@@ -7,7 +7,7 @@ import (
 
 func RunServer() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("pong\n"))
+		//_, _ = w.Write([]byte("pong\n"))
 		//method, values := Handlers.ReadUrlGet(r.URL)
 		//println(r.Method)
 		Handlers.GetHandler(w, r, nil)
