@@ -3,32 +3,76 @@ package main
 import (
 	"PeredelanoHakaton/Handlers"
 	"net/http"
+	"strings"
 
-	"github.com/rs/cors"
+	"github.com/gorilla/mux"
 )
+
+const (
+	GetAllWhereParam = 1
+	GetById          = 2
+)
+
+func getEntity(url string) string {
+	entityToken := strings.Split(url, "/")[1]
+	entity := strings.Split(entityToken, "?")[0]
+	return entity
+}
+
+func getGETRequestType(url string) int {
+	if len(strings.Split(url, "/")) == 3 {
+		return GetById
+	}
+	return GetAllWhereParam
+}
 
 func RunServer() {
 
-	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173"}, // your front-end origin
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
-	})
+	//c := cors.New(cors.Options{
+	//	AllowedOrigins: []string{"http://localhost:5173"}, // your front-end origin
+	//	AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	//	AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+	//})
 
-	defaultHandler := func(w http.ResponseWriter, r *http.Request) {
-		//println(r.Method)
-		switch r.Method {
-		case "GET":
-			Handlers.GetHandler(w, r, nil)
-		case "POST":
-			Handlers.PostHandler(w, r, nil)
-		}
+	//defaultHandler := func(w http.ResponseWriter, r *http.Request) {
+	//	//println(r.Method)
+	//	url := r.URL.Path
+	//	switch r.Method {
+	//	case "GET":
+	//		switch getEntity(url) {
+	//		case "user":
+	//			switch getGETRequestType(url) {
+	//			case GetById:
+	//
+	//			case GetAllWhereParam:
+	//
+	//			}
+	//		case "issue":
+	//
+	//		case "organisation":
+	//
+	//		case "message":
+	//
+	//		}
+	//		Handlers.GetHandler(w, r, nil)
+	//	case "POST":
+	//		Handlers.PostHandler(w, r, nil)
+	//	}
+	//
+	//}
 
-	}
+	defaultHandler := mux.NewRouter()
 
-	handlerWithCors := c.Handler(http.HandlerFunc(defaultHandler))
+	defaultHandler.HandleFunc("/user/{id:[0-9]+}", Handlers.GetUserByIdHandler)
+	defaultHandler.HandleFunc("/user", Handlers.GetAllUsersWhereParam)
 
-	err := http.ListenAndServe(":8080", handlerWithCors)
+	//handlerWithCors := c.Handler(http.HandlerFunc(defaultHandler))
+
+	defaultHandler.Methods("GET", "POST", "PUT", "DELETE", "OPTIONS").
+		Headers("Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization")
+
+	//err := http.ListenAndServe(":8080", handlerWithCors)
+	err := http.ListenAndServe(":8080", defaultHandler)
 	if err != nil {
 		panic(err)
 	}
