@@ -23,7 +23,7 @@ const (
 	newIssue    = "newIssue"
 )
 
-func GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+func GetUserById(w http.ResponseWriter, r *http.Request) {
 
 	ids := mux.Vars(r)
 	sqlQuery := fmt.Sprintf("SELECT * FROM users WHERE id = %d", ids["id"])
@@ -55,7 +55,122 @@ func GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
 	}
 
 	marshaled, err := json.Marshal(data)
-	response := fmt.Sprintf("{size: %d, data: %s}", 239, string(marshaled))
+	response := fmt.Sprintf("{meta: {size: %d}, data: %s}", 239, string(marshaled))
+	w.Write([]byte(response))
+	println(sqlQuery)
+}
+
+func GetOrganisationById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("SELECT * FROM organisations WHERE id = %d", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func GetAllOrganisationWhereParam(w http.ResponseWriter, r *http.Request) {
+
+	queryParams := r.URL.Query()
+	page, err := strconv.Atoi(queryParams.Get("page"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	limit, err := strconv.Atoi(queryParams.Get("limit"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	sqlQuery := fmt.Sprintf("SELECT * FROM organisation LIMIT %d OFFSET %d", limit, limit*(page-1))
+	println(r.URL.String())
+	data := make([]Entities.Organisation, limit)
+	for i := 0; i < limit; i++ {
+		data[i] = Entities.Organisation{
+			Id:          i,
+			Name:        fmt.Sprintf("Foo %d", i),
+			ContactInfo: "placeholder@mailmail.com",
+			Country:     fmt.Sprintf("Country %d", i),
+			OrgType:     fmt.Sprintf("Type %d", i),
+		}
+	}
+
+	marshaled, err := json.Marshal(data)
+	response := fmt.Sprintf("{meta: {size: %d}, data: %s}", 239, string(marshaled))
+	w.Write([]byte(response))
+	println(sqlQuery)
+}
+
+func GetIssueById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("SELECT * FROM issues WHERE id = %d", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func GetAllIssuesWhereParam(w http.ResponseWriter, r *http.Request) {
+
+	queryParams := r.URL.Query()
+	page, err := strconv.Atoi(queryParams.Get("page"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	limit, err := strconv.Atoi(queryParams.Get("limit"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	sqlQuery := fmt.Sprintf("SELECT * FROM issues LIMIT %d OFFSET %d", limit, limit*(page-1))
+	println(r.URL.String())
+	data := make([]Entities.Issue, limit)
+	for i := 0; i < limit; i++ {
+		data[i] = Entities.Issue{
+			Id:             i,
+			Status:         fmt.Sprintf("Foo %d", i),
+			Description:    fmt.Sprintf("Description %d", i),
+			OrganisationId: i,
+		}
+	}
+
+	marshaled, err := json.Marshal(data)
+	response := fmt.Sprintf("{meta: {size: %d}, data: %s}", 239, string(marshaled))
+	w.Write([]byte(response))
+	println(sqlQuery)
+}
+
+func GetMessageById(w http.ResponseWriter, r *http.Request) {
+
+	ids := mux.Vars(r)
+	sqlQuery := fmt.Sprintf("SELECT * FROM messages WHERE id = %d", ids["id"])
+	w.Write([]byte(sqlQuery))
+
+}
+
+func GetAllMessagesWhereParam(w http.ResponseWriter, r *http.Request) {
+
+	queryParams := r.URL.Query()
+	page, err := strconv.Atoi(queryParams.Get("page"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	limit, err := strconv.Atoi(queryParams.Get("limit"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	sqlQuery := fmt.Sprintf("SELECT * FROM messages LIMIT %d OFFSET %d", limit, limit*(page-1))
+	println(r.URL.String())
+	data := make([]Entities.Message, limit)
+	for i := 0; i < limit; i++ {
+		data[i] = Entities.Message{
+			Id:      i,
+			Date:    fmt.Sprintf("%d.%d.20%d", i),
+			Data:    "Lorem ipsum",
+			IssueId: i,
+		}
+	}
+
+	marshaled, err := json.Marshal(data)
+	response := fmt.Sprintf("{meta: {size: %d}, data: %s}", 239, string(marshaled))
 	w.Write([]byte(response))
 	println(sqlQuery)
 }

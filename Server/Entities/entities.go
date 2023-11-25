@@ -19,7 +19,7 @@ type Message struct {
 	Id      int    `json:"id,omitempty"`
 	Data    string `json:"data"`
 	Date    string `json:"date"`
-	IssueId string `json:"issue_id"`
+	IssueId int    `json:"issue_id"`
 }
 
 type User struct {
