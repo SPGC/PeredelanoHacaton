@@ -39,6 +39,8 @@ func RunServer() {
 	router.HandleFunc("/messages/{id:[0-9]+}", Handlers.GetMessageById).Methods("GET")
 	router.HandleFunc("/messages", Handlers.GetAllMessagesWhereParam).Methods("GET")
 
+	router.HandleFunc("/issues", Handlers.PostIssue).Methods("POST")
+
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:5173"}, // Frontend origin
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
