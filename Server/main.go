@@ -3,17 +3,52 @@ package main
 import (
 	"PeredelanoHakaton/Handlers"
 	"net/http"
+	"strings"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
-func RunServer() {
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		//_, _ = w.Write([]byte("pong\n"))
-		//method, values := Handlers.ReadUrlGet(r.URL)
-		//println(r.Method)
-		Handlers.GetHandler(w, r, nil)
-	}
+const (
+	GetAllWhereParam = 1
+	GetById          = 2
+)
 
-	err := http.ListenAndServe(":8080", http.HandlerFunc(handler))
+func getEntity(url string) string {
+	entityToken := strings.Split(url, "/")[1]
+	entity := strings.Split(entityToken, "?")[0]
+	return entity
+}
+
+func getGETRequestType(url string) int {
+	if len(strings.Split(url, "/")) == 3 {
+		return GetById
+	}
+	return GetAllWhereParam
+}
+
+func RunServer() {
+	router := mux.NewRouter()
+
+	router.HandleFunc("/users/{id:[0-9]+}", Handlers.GetUserById).Methods("GET")
+	router.HandleFunc("/users", Handlers.GetAllUsersWhereParam).Methods("GET")
+	router.HandleFunc("/organisations/{id:[0-9]+}", Handlers.GetOrganisationById).Methods("GET")
+	router.HandleFunc("/organisations", Handlers.GetAllOrganisationWhereParam).Methods("GET")
+	router.HandleFunc("/issues/{id:[0-9]+}", Handlers.GetIssueById).Methods("GET")
+	router.HandleFunc("/issues", Handlers.GetAllIssuesWhereParam).Methods("GET")
+	router.HandleFunc("/messages/{id:[0-9]+}", Handlers.GetMessageById).Methods("GET")
+	router.HandleFunc("/messages", Handlers.GetAllMessagesWhereParam).Methods("GET")
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173"}, // Frontend origin
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+	})
+
+	handlerWithCors := c.Handler(router)
+
+	err := http.ListenAndServe(":8080", handlerWithCors)
+
 	if err != nil {
 		panic(err)
 	}
@@ -21,19 +56,5 @@ func RunServer() {
 
 func main() {
 	println("Server started")
-	//connStr := "user=youruser dbname=yourdb password=yourpassword host=localhost sslmode=disable"
-	//
-	//// Установка соединения с базой данных
-	//db, err := sql.Open("postgres", connStr)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer db.Close()
-	//
-	//// Проверка соединения с базой данных
-	//err = db.Ping()
-	//if err != nil {
-	//	log.Fatal("Ошибка соединения:", err)
-	//}
 	RunServer()
 }
