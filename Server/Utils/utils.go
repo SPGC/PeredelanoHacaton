@@ -141,37 +141,26 @@ func GetUsersList(db *sql.DB, sqlQuery string) ([]Entities.User, error) {
 	var rows *sql.Rows
 	start := time.Now()
 	var err error
-	//data := make([]Entities.Issue, 0)
 	data := make([]Entities.User, 0)
 	for true {
 		flag := true
 		rows, err = db.Query(sqlQuery)
-		//if err != nil {
-		//	return nil, ErrorCantRead
-		//}
 		flag = flag && (err == nil)
 		counter := 0
 		for rows.Next() {
 			data = append(data, Entities.User{})
 			err = rows.Scan(&data[counter].Id, &data[counter].Name, &data[counter].ContactInfo)
-			//if err != nil {
-			//	return nil, ErrorCantRead
-			//}
 			flag = flag && (err == nil)
-			//data[counter].AmountOfIssues, err = GetUserAmountOfIssuesById(db, data[counter].Id)
 			data[counter].AmountOfIssues, err = GetEntityAmountOfIssuesById(db, data[counter].Id, "user")
 			flag = flag && (err == nil)
-			//if err != nil {
-			//	return nil, ErrorCantRead
-			//}
 			counter++
-			if flag {
-				return data, nil
-			}
-			current := time.Now()
-			if current.Sub(start).Seconds() > MaxDelay && err != nil {
-				return nil, ErrorCantRead
-			}
+		}
+		if flag {
+			return data, nil
+		}
+		current := time.Now()
+		if current.Sub(start).Seconds() > MaxDelay && err != nil {
+			return nil, ErrorCantRead
 		}
 	}
 	return data, nil
