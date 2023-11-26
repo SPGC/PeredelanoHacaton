@@ -9,7 +9,7 @@ const StatusChecker = () => {
 
     const checkServerStatus = async () => {
         try {
-            const response = await axios.get('http://172.16.15.7:8080');
+            const response = await axios.get('/api/');
             setServerStatus(response.status === 200 ? 'online' : 'offline');
         } catch (error) {
             setServerStatus('offline');
