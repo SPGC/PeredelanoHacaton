@@ -35,15 +35,47 @@ bot.on('message', (msg) => {
 
   if (conversationSteps[chatId].step === 'askCountry') {
     conversationSteps[chatId].country = msg.text;
+    conversationSteps[chatId].step = 'askCompany';
+    bot.sendMessage(chatId, "Пожалуйста, укажите с какой организацей у Вас возникла проблема.");
+    return;
+  }
+
+  if (conversationSteps[chatId].step === 'askCompany') {
+    conversationSteps[chatId].company = msg.text;
     conversationSteps[chatId].step = 'askQuestion';
-    bot.sendMessage(chatId, "Какой у вас вопрос?");
+    bot.sendMessage(chatId, "Опишите Вашу проблему подробнее.");
     return;
   }
 
   if (conversationSteps[chatId].step === 'askQuestion') {
     conversationSteps[chatId].question = msg.text;
-    console.log(`User ${chatId} from ${conversationSteps[chatId].country} asked: ${conversationSteps[chatId].question}`);
-    bot.sendMessage(chatId, "Thank you for your input. We will get back to you soon.");
+    conversationSteps[chatId].step = 'askInfo';
+    bot.sendMessage(chatId, "Оставьте Ваши контакты для связи(телеграм или электронная почта).");
+    return;
+  }
+
+  if (conversationSteps[chatId].step === 'askInfo') {
+    conversationSteps[chatId].info = msg.text;
+    const res = conversationSteps[chatId];
+    fetch(`https://geraback.fly.dev:443/issues`, {method: "POST", body: JSON.stringify({
+      issuer: {
+        name: res.info,
+        contact_info: res.info,
+      },
+      company: {
+        country:  res.country,
+        name: res.company,
+        contact_info: "",
+        org_type: ""
+      },
+      message: {
+        description: res.question
+      }
+    })}).then((res) => {
+      bot.sendMessage(chatId, "Спасибо за Вашу заявку.");
+    }).catch((er) => {
+      bot.sendMessage(chatId, "ОШИБКА");
+    })
     delete conversationSteps[chatId]; 
     return;
   }
