@@ -19,14 +19,15 @@ func RunServer() {
 	Database := os.Getenv("POSTGRES_DATABASE")
 	//dbConnection, err := sql.Open(
 	//	"postgres",
-	//	fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", UserName, Database, Password, Host),
+	//	fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=require", UserName, Database, Password, Host),
 	//)
 	dbConnection, err := sql.Open(
 		"postgres",
-		fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", UserName, Password, Host, Database),
+		fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=require", UserName, Password, Host, Database),
 	)
 	//dbConnection, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
 	if err != nil {
+		println(err.Error())
 		println("Can't access data base")
 		return
 	}
@@ -38,6 +39,7 @@ func RunServer() {
 	}(dbConnection)
 	err = dbConnection.Ping()
 	if err != nil {
+		println(err.Error())
 		println("Can't access data base")
 		return
 	}
