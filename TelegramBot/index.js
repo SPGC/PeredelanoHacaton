@@ -42,6 +42,13 @@ bot.on('message', (msg) => {
 
   if (conversationSteps[chatId].step === 'askCompany') {
     conversationSteps[chatId].company = msg.text;
+    conversationSteps[chatId].step = 'askType';
+    bot.sendMessage(chatId, "Укажите тип организации(банк, авиакомпания и тд.)");
+    return;
+  }
+
+  if (conversationSteps[chatId].step === 'askType') {
+    conversationSteps[chatId].orgType = msg.text;
     conversationSteps[chatId].step = 'askQuestion';
     bot.sendMessage(chatId, "Опишите Вашу проблему подробнее.");
     return;
@@ -49,24 +56,34 @@ bot.on('message', (msg) => {
 
   if (conversationSteps[chatId].step === 'askQuestion') {
     conversationSteps[chatId].question = msg.text;
+    conversationSteps[chatId].step = 'askName';
+    bot.sendMessage(chatId, "Как к Вам обращаться?");
+    return;
+  }
+
+
+  if (conversationSteps[chatId].step === 'askName') {
+    conversationSteps[chatId].name = msg.text;
     conversationSteps[chatId].step = 'askInfo';
     bot.sendMessage(chatId, "Оставьте Ваши контакты для связи(телеграм или электронная почта).");
     return;
   }
 
+
   if (conversationSteps[chatId].step === 'askInfo') {
     conversationSteps[chatId].info = msg.text;
     const res = conversationSteps[chatId];
+
     fetch(`https://geraback.fly.dev:443/issues`, {method: "POST", body: JSON.stringify({
       issuer: {
-        name: res.info,
+        name: res.name,
         contact_info: res.info,
       },
       company: {
         country:  res.country,
         name: res.company,
         contact_info: "",
-        org_type: ""
+        org_type: res.orgType,
       },
       message: {
         description: res.question
