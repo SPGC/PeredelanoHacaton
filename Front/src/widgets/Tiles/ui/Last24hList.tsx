@@ -14,7 +14,7 @@ const Last24HList = (props: Last24HListProps) => {
     } = props;
 
     return (
-        <div className="flex flex-col
+        <div className="flex flex-auto flex-col
          bg-gray-800 w-60 justify-between
         h-28 rounded-md p-2 text-2xl">
             <p className="text-gray-300">TOTAL</p>

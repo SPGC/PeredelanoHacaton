@@ -8,10 +8,10 @@ import {RobotPage} from "../../../pages/RobotPage";
 
 export enum AppRoutes {
     MAIN = 'main',
-    DASHBOARD = 'about',
+    DASHBOARD = 'dashboard',
     NOT_FOUND = 'not_found',
-    LIST = 'machinery',
-    ROBOT = 'fields',
+    LIST = 'list',
+    ROBOT = 'robot',
 }
 
 export const RoutePath: Record<AppRoutes, string> = {
@@ -30,15 +30,15 @@ export const routeConfig: Record<AppRoutes, RouteProps> = {
         element: <MainPage />,
     },
     [AppRoutes.DASHBOARD]: {
-        path: RoutePath.about,
+        path: RoutePath.dashboard,
         element: <DashboardPage />,
     },
     [AppRoutes.LIST]: {
-        path: RoutePath.machinery,
+        path: RoutePath.list,
         element: <ListPage />,
     },
     [AppRoutes.ROBOT]: {
-        path: RoutePath.fields,
+        path: RoutePath.robot,
         element: <RobotPage />,
     },
     [AppRoutes.NOT_FOUND]: {
