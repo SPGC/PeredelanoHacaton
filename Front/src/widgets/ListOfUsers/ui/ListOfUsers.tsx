@@ -9,29 +9,38 @@ const columns: GridColDef[] = [
     { field: 'amount_of_issues', headerName: 'Issues Count', width: 130 },
 ];
 
+
 const fetchData = async () => {
-    try {
-        const response = await axios.get('/api/users?page=1&limit=1000', {
-        });
-        console.log(response.data);
+    const maxAttempts = 5;
+    let attempt = 0;
 
-        const responseData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    while (attempt < maxAttempts) {
+        try {
+            const response = await axios.get('https://geraback.fly.dev/users?page=1&limit=1000');
+            if (response.status === 200) {
+                const responseData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
 
-        if (responseData && responseData.data) {
-            const formattedData = responseData.data.map((item: { id: number; name: string; contact_info: string; amount_of_issues: number; }) => ({
-                id: item.id,
-                name: item.name || 'No Name',
-                contact_info: item.contact_info || 'No Contact Info',
-                amount_of_issues: item.amount_of_issues || 0
-            }));
-            return formattedData;
+                if (responseData && responseData.data) {
+                    const formattedData = responseData.data.map((item: any) => ({
+                        id: item.id,
+                        name: item.name || 'No Name',
+                        contact_info: item.contact_info || 'No Contact Info',
+                        amount_of_issues: item.amount_of_issues || 0
+                    }));
+                    return formattedData;
+                }
+                return [];
+            }
+        } catch (error) {
+            console.error(`Attempt ${attempt + 1} failed:`, error);
+            attempt++;
+            if (attempt >= maxAttempts) {
+                console.error("Max attempts reached, failing...");
+                return [];
+            }
         }
-        return [];
-    } catch (error) {
-        console.error(error);
-        return [];
     }
-}
+};
 
 const ListOfUsers = () => {
     const [rows, setRows] = useState([]);

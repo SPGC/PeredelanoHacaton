@@ -14,7 +14,7 @@ const TileRowInfoGeneral = () => {
             <StatusChecker />
             <div className="flex flex-row gap-6 h-10 p-2 w-fit bg-gray-800 rounded-md">
                 <div className="flex flex-row gap-1 items-center text-xs">
-                    v.0.0.4
+                    v.0.0.8
                 </div>
             </div>
         </>
