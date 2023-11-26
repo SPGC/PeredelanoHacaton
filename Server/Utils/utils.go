@@ -4,6 +4,7 @@ import (
 	"PeredelanoHakaton/Entities"
 	"database/sql"
 	"errors"
+	"time"
 )
 
 const (
@@ -18,13 +19,24 @@ const (
 var (
 	ErrorCantRead        = errors.New(CantRead)
 	ErrorUnsupportedType = errors.New(UnsupportedType)
+	MaxDelay             = time.Duration.Seconds(30)
 )
 
 func ReadItemFromDb(db *sql.DB, sqlQuery string, args ...interface{}) error {
-	rows, err := db.Query(sqlQuery)
-	if err != nil {
-		return ErrorCantRead
+	var rows *sql.Rows
+	start := time.Now()
+	var err error
+	for true {
+		rows, err = db.Query(sqlQuery)
+		if err == nil {
+			break
+		}
+		current := time.Now()
+		if current.Sub(start).Seconds() > MaxDelay && err != nil {
+			return ErrorCantRead
+		}
 	}
+
 	for rows.Next() {
 		err = rows.Scan(args...)
 		if err != nil {
@@ -126,25 +138,41 @@ func GetEntityAmountOfIssuesById(db *sql.DB, id int, entityType string) (int, er
 }
 
 func GetUsersList(db *sql.DB, sqlQuery string) ([]Entities.User, error) {
+	var rows *sql.Rows
+	start := time.Now()
+	var err error
+	//data := make([]Entities.Issue, 0)
 	data := make([]Entities.User, 0)
-	rows, err := db.Query(sqlQuery)
-	if err != nil {
-		return nil, ErrorCantRead
-	}
-	counter := 0
-	for rows.Next() {
-		data = append(data, Entities.User{})
-		err = rows.Scan(&data[counter].Id, &data[counter].Name, &data[counter].ContactInfo)
-		if err != nil {
-			return nil, ErrorCantRead
+	for true {
+		flag := true
+		rows, err = db.Query(sqlQuery)
+		//if err != nil {
+		//	return nil, ErrorCantRead
+		//}
+		flag = flag && (err == nil)
+		counter := 0
+		for rows.Next() {
+			data = append(data, Entities.User{})
+			err = rows.Scan(&data[counter].Id, &data[counter].Name, &data[counter].ContactInfo)
+			//if err != nil {
+			//	return nil, ErrorCantRead
+			//}
+			flag = flag && (err == nil)
+			//data[counter].AmountOfIssues, err = GetUserAmountOfIssuesById(db, data[counter].Id)
+			data[counter].AmountOfIssues, err = GetEntityAmountOfIssuesById(db, data[counter].Id, "user")
+			flag = flag && (err == nil)
+			//if err != nil {
+			//	return nil, ErrorCantRead
+			//}
+			counter++
+			if flag {
+				return data, nil
+			}
+			current := time.Now()
+			if current.Sub(start).Seconds() > MaxDelay && err != nil {
+				return nil, ErrorCantRead
+			}
 		}
-		//data[counter].AmountOfIssues, err = GetUserAmountOfIssuesById(db, data[counter].Id)
-		data[counter].AmountOfIssues, err = GetEntityAmountOfIssuesById(db, data[counter].Id, "user")
-
-		if err != nil {
-			return nil, ErrorCantRead
-		}
-		counter++
 	}
 	return data, nil
 }
@@ -212,37 +240,42 @@ func GetAmountOfOrganisations(db *sql.DB) (int, error) {
 }
 
 func GetIssuesList(db *sql.DB, sqlQuery string) ([]Entities.Issue, error) {
+	var rows *sql.Rows
+	start := time.Now()
+	var err error
 	data := make([]Entities.Issue, 0)
-	rows, err := db.Query(sqlQuery)
-	if err != nil {
-		return nil, ErrorCantRead
-	}
-	counter := 0
-	for rows.Next() {
-		data = append(data, Entities.Issue{})
-		err = rows.Scan(
-			&data[counter].Id,
-			&data[counter].Status,
-			&data[counter].Description,
-			&data[counter].OrganisationId,
-			&data[counter].UserId,
-			&data[counter].Validation,
-		)
-		if err != nil {
+	for true {
+		flag := true
+		rows, err = db.Query(sqlQuery)
+		flag = flag && (err == nil)
+		counter := 0
+		for rows.Next() {
+			data = append(data, Entities.Issue{})
+			err = rows.Scan(
+				&data[counter].Id,
+				&data[counter].Status,
+				&data[counter].Description,
+				&data[counter].OrganisationId,
+				&data[counter].UserId,
+				&data[counter].Validation,
+			)
+			flag = flag && (err == nil)
+
+			data[counter].OrganisationName, err = GetOrgNameById(db, data[counter].OrganisationId)
+			flag = flag && (err == nil)
+
+			data[counter].OrganisationCountry, err = GetOrgCountryById(db, data[counter].OrganisationId)
+			flag = flag && (err == nil)
+
+			counter++
+		}
+		if flag {
+			return data, nil
+		}
+		current := time.Now()
+		if current.Sub(start).Seconds() > MaxDelay && err != nil {
 			return nil, ErrorCantRead
 		}
-
-		data[counter].OrganisationName, err = GetOrgNameById(db, data[counter].OrganisationId)
-		if err != nil {
-			return nil, err
-		}
-
-		data[counter].OrganisationCountry, err = GetOrgCountryById(db, data[counter].OrganisationId)
-		if err != nil {
-			return nil, err
-		}
-
-		counter++
 	}
 
 	return data, nil
