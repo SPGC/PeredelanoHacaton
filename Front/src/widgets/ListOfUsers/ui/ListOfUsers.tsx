@@ -11,7 +11,7 @@ const columns: GridColDef[] = [
 
 const fetchData = async () => {
     try {
-        const response = await axios.get('http://172.16.15.7:8080/users?page=1&limit=1000', {
+        const response = await axios.get('/api/users?page=1&limit=1000', {
         });
         console.log(response.data);
 
