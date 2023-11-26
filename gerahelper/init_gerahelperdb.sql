@@ -29,8 +29,8 @@ CREATE TABLE issues
 CREATE TABLE messages
 (
     Id       SERIAL PRIMARY KEY,
-    Data     TIMESTAMP,
-    Date     TEXT,
+    Data     TEXT,
+    Date     DATE,
     Issue_id INTEGER,
     CONSTRAINT fk_author FOREIGN KEY (Issue_id) REFERENCES issues (Id)
 );
@@ -42,6 +42,7 @@ CREATE PROCEDURE insert_issue(UserName CHARACTER VARYING(50), UserContactInfo CH
                               OrganisationType CHARACTER VARYING(50))
     LANGUAGE sql AS
 $$
+
 INSERT INTO users (Name, Contact)
 VALUES (UserName, UserContactInfo)
 ON CONFLICT DO NOTHING;
@@ -53,9 +54,36 @@ SELECT OrganisationCountry,
        OrganisationType
 WHERE NOT EXISTS (SELECT Id FROM organisations WHERE Country = OrganisationCountry AND Name = OrganisationName);
 
-INSERT INTO issues (Status, Description, Organisation_id, Validation)
-SELECT 'New', Description, Id, FALSE
+INSERT INTO issues (Status, Description, Organisation_id, Validation, User_id)
+SELECT 'New', Description, Id, FALSE, (SELECT id from users where Contact=UserContactInfo)
 FROM organisations
 WHERE Country = OrganisationCountry
   AND Name = OrganisationName;
+$$;
+
+create procedure update_organisation(    P_Id       INT,
+                                         P_Country  CHARACTER VARYING(50),
+                                         P_Name     CHARACTER VARYING(50),
+                                         P_Contacts CHARACTER VARYING(100),
+                                         P_Type     CHARACTER VARYING(50))
+    language plpgsql as $$
+declare
+    new_name_id int;
+begin
+    if exists(select * from organisations o where o.country=P_Country and o.name=P_Name) then
+        if P_Id = (select id from organisations o where o.country=P_Country and o.name=P_Name) then
+            update organisations set
+                                     country = P_Country, name=P_Name, contacts=P_Contacts, type=P_Type
+            where id = P_Id;
+        else
+            new_name_id := (select id from organisations o where o.country=P_Country and o.name=P_Name);
+            update issues set organisation_id=new_name_id where organisation_id=P_Id;
+            delete from organisations where id = P_Id;
+        end if;
+    else
+        update organisations set
+                                 country = P_Country, name=P_Name, contacts=P_Contacts, type=P_Type
+        where id = P_Id;
+    end if;
+end;
 $$;

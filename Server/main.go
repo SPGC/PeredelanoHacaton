@@ -29,34 +29,36 @@ func RunServer() {
 	db := Handlers.DBWrapper{Db: dbConnection}
 
 	router.HandleFunc("/", Handlers.Ping).Methods("GET")
+	router.HandleFunc("/", Handlers.Ping).Methods("OPTIONS")
 
 	router.HandleFunc("/users/{id:[0-9]+}", db.GetUserById).Methods("GET")
-	router.HandleFunc("/organisations/{id:[0-9]+}", Handlers.GetOrganisationById).Methods("GET")
-	router.HandleFunc("/issues/{id:[0-9]+}", Handlers.GetIssueById).Methods("GET")
-	router.HandleFunc("/messages/{id:[0-9]+}", Handlers.GetMessageById).Methods("GET")
+	router.HandleFunc("/organisations/{id:[0-9]+}", db.GetOrganisationById).Methods("GET")
+	router.HandleFunc("/issues/{id:[0-9]+}", db.GetIssueById).Methods("GET")
+	router.HandleFunc("/messages/{id:[0-9]+}", db.GetMessageById).Methods("GET")
 
 	router.HandleFunc("/users", db.GetAllUsersWhereParam).Methods("GET")
-	router.HandleFunc("/organisations", Handlers.GetAllOrganisationWhereParam).Methods("GET")
-	router.HandleFunc("/issues", Handlers.GetAllIssuesWhereParam).Methods("GET")
-	router.HandleFunc("/messages", Handlers.GetAllMessagesWhereParam).Methods("GET")
+	router.HandleFunc("/organisations", db.GetAllOrganisationWhereParam).Methods("GET")
+	router.HandleFunc("/issues", db.GetAllIssuesWhereParam).Methods("GET")
+	router.HandleFunc("/messages", db.GetAllMessagesWhereParam).Methods("GET")
 
-	router.HandleFunc("/issues", Handlers.PostIssue).Methods("POST")
-	router.HandleFunc("/organisations", Handlers.PostOrganisation).Methods("POST")
-	router.HandleFunc("/messages", Handlers.PostMessage).Methods("POST")
+	router.HandleFunc("/issues", db.PostIssue).Methods("POST")
+	router.HandleFunc("/organisations", db.PostOrganisation).Methods("POST")
+	router.HandleFunc("/messages", db.PostMessage).Methods("POST")
 	router.HandleFunc("/users", db.PostUser).Methods("POST")
 
 	router.HandleFunc("/users/{id:[0-9]+}", db.DeleteUserById).Methods("DELETE")
-	router.HandleFunc("/organisations/{id:[0-9]+}", Handlers.DeleteOrganisationById).Methods("DELETE")
-	router.HandleFunc("/issues/{id:[0-9]+}", Handlers.DeleteIssueById).Methods("DELETE")
-	router.HandleFunc("/messages/{id:[0-9]+}", Handlers.DeleteMessageById).Methods("DELETE")
+	router.HandleFunc("/organisations/{id:[0-9]+}", db.DeleteOrganisationById).Methods("DELETE")
+	router.HandleFunc("/issues/{id:[0-9]+}", db.DeleteIssueById).Methods("DELETE")
+	router.HandleFunc("/messages/{id:[0-9]+}", db.DeleteMessageById).Methods("DELETE")
 
-	router.HandleFunc("/issues", Handlers.UpdateIssue).Methods("PUT")
-	router.HandleFunc("/organisations", Handlers.UpdateOrganisation).Methods("PUT")
-	router.HandleFunc("/messages", Handlers.UpdateMessage).Methods("PUT")
+	router.HandleFunc("/issues", db.UpdateIssue).Methods("PUT")
+	router.HandleFunc("/organisations", db.UpdateOrganisation).Methods("PUT")
+	router.HandleFunc("/messages", db.UpdateMessage).Methods("PUT")
 	router.HandleFunc("/users", db.UpdateUser).Methods("PUT")
 
 	c := cors.New(cors.Options{
 		//AllowedOrigins: []string{"http://localhost:5173"}, // Frontend origin
+		//AllowedOrigins: []string{"*"}, // Frontend origin
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
 	})
