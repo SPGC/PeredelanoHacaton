@@ -4,6 +4,7 @@ import (
 	"PeredelanoHakaton/Entities"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -49,7 +50,7 @@ func ReadItemFromDb(db *sql.DB, sqlQuery string, args ...interface{}) error {
 }
 
 func GetOrgNameById(db *sql.DB, id int) (string, error) {
-	sqlQuery := "SELECT name FROM organisations WHERE id=$1"
+	sqlQuery := fmt.Sprintf("SELECT name FROM organisations WHERE id=%d", id)
 
 	rows, err := db.Query(sqlQuery, id)
 	if err != nil {
@@ -66,7 +67,7 @@ func GetOrgNameById(db *sql.DB, id int) (string, error) {
 }
 
 func GetOrgCountryById(db *sql.DB, id int) (string, error) {
-	sqlQuery := "SELECT country FROM organisations WHERE id=$1"
+	sqlQuery := fmt.Sprintf("SELECT country FROM organisations WHERE id=%d", id)
 
 	rows, err := db.Query(sqlQuery, id)
 	if err != nil {
@@ -83,9 +84,9 @@ func GetOrgCountryById(db *sql.DB, id int) (string, error) {
 }
 
 func GetUserIssuesList(db *sql.DB, id int) ([]Entities.Issue, error) {
-	sqlQuery := "SELECT * FROM issues WHERE user_id = $1"
+	sqlQuery := fmt.Sprintf("SELECT * FROM issues WHERE user_id = %d", id)
 
-	rows, err := db.Query(sqlQuery, id)
+	rows, err := db.Query(sqlQuery)
 	if err != nil {
 		return nil, ErrorCantRead
 	}
@@ -123,8 +124,8 @@ func GetEntityAmountOfIssuesById(db *sql.DB, id int, entityType string) (int, er
 		return 0, ErrorUnsupportedType
 	}
 	var amount int
-	sqlQuery := "SELECT count(*) FROM issues WHERE $1=$2"
-	rows, err := db.Query(sqlQuery, key, id)
+	sqlQuery := fmt.Sprintf("SELECT count(*) FROM issues WHERE %s=%d", key, id)
+	rows, err := db.Query(sqlQuery)
 	if err != nil {
 		return 0, ErrorCantRead
 	}
@@ -143,6 +144,7 @@ func GetUsersList(db *sql.DB, sqlQuery string) ([]Entities.User, error) {
 	var err error
 	data := make([]Entities.User, 0)
 	for true {
+		data = make([]Entities.User, 0)
 		flag := true
 		rows, err = db.Query(sqlQuery)
 		flag = flag && (err == nil)
