@@ -1,4 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
+require('dotenv').config();
+
 const token = process.env.TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
@@ -25,7 +27,7 @@ bot.on('callback_query', (callbackQuery) => {
   }
 });
 
-bot.on('message', (msg) => {
+bot.on('message', (msg) => {  
   const chatId = msg.chat.id;
   if (!conversationSteps[chatId] || msg.text.startsWith('/')) {
     return; 
