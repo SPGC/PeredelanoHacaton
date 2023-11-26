@@ -53,6 +53,23 @@ func GetOrgNameById(db *sql.DB, id int) (string, error) {
 	return result, nil
 }
 
+func GetOrgCountryById(db *sql.DB, id int) (string, error) {
+	sqlQuery := "SELECT country FROM organisations WHERE id=$1"
+
+	rows, err := db.Query(sqlQuery, id)
+	if err != nil {
+		return "", ErrorCantRead
+	}
+	var result string
+	for rows.Next() {
+		err = rows.Scan(&result)
+		if err != nil {
+			return "", ErrorCantRead
+		}
+	}
+	return result, nil
+}
+
 func GetUserIssuesList(db *sql.DB, id int) ([]Entities.Issue, error) {
 	sqlQuery := "SELECT * FROM issues WHERE user_id = $1"
 
@@ -215,9 +232,16 @@ func GetIssuesList(db *sql.DB, sqlQuery string) ([]Entities.Issue, error) {
 			return nil, ErrorCantRead
 		}
 
+		data[counter].OrganisationName, err = GetOrgNameById(db, data[counter].OrganisationId)
 		if err != nil {
-			return nil, ErrorCantRead
+			return nil, err
 		}
+
+		data[counter].OrganisationCountry, err = GetOrgCountryById(db, data[counter].OrganisationId)
+		if err != nil {
+			return nil, err
+		}
+
 		counter++
 	}
 

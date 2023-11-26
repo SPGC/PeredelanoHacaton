@@ -10,13 +10,14 @@ type Organisation struct {
 }
 
 type Issue struct {
-	Id               int    `json:"id,omitempty"`
-	Status           string `json:"status,omitempty"`
-	Description      string `json:"description"`
-	OrganisationId   int    `json:"organisation_id,omitempty"`
-	OrganisationName string `json:"organisation_name,omitempty"`
-	Validation       bool   `json:"validation,omitempty"`
-	UserId           int    `json:"user_id,omitempty"`
+	Id                  int    `json:"id,omitempty"`
+	Status              string `json:"status,omitempty"`
+	Description         string `json:"description"`
+	OrganisationId      int    `json:"organisation_id,omitempty"`
+	OrganisationName    string `json:"organisation_name,omitempty"`
+	OrganisationCountry string `json:"organisation_country,omitempty"`
+	Validation          bool   `json:"validation,omitempty"`
+	UserId              int    `json:"user_id,omitempty"`
 }
 
 type Message struct {

@@ -224,6 +224,19 @@ func (db DBWrapper) GetIssueById(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
+	issue.OrganisationName, err = Utils.GetOrgNameById(db.Db, issue.OrganisationId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
+	issue.OrganisationCountry, err = Utils.GetOrgCountryById(db.Db, issue.OrganisationId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		return
 	}
 
 	issueJson, err := json.Marshal(issue)
@@ -323,13 +336,26 @@ func (db DBWrapper) GetAllMessagesWhereParam(w http.ResponseWriter, r *http.Requ
 	page, err := strconv.Atoi(queryParams.Get("page"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
 	limit, err := strconv.Atoi(queryParams.Get("limit"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	issueId, err := strconv.Atoi(queryParams.Get("issue_id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	sqlQuery := fmt.Sprintf("SELECT * FROM messages LIMIT %d OFFSET %d", limit, limit*(page-1))
+	sqlQuery := fmt.Sprintf(
+		"SELECT * FROM messages WHERE issue_id=%d LIMIT %d OFFSET %d",
+		issueId,
+		limit,
+		limit*(page-1),
+	)
 	data, err := Utils.GetMessagesList(db.Db, sqlQuery)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
@@ -624,8 +650,38 @@ func (db DBWrapper) UpdateIssue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.BadBody, http.StatusUnprocessableEntity)
 		return
 	}
-	sqlQuery := fmt.Sprintf("UPDATE issues SET status = %s, description=%s, organisation_id=%d, validation=%t WHERE id = %d",
+	println(issue.Description)
+	sqlQuery := fmt.Sprintf("UPDATE issues SET status = '%s', description='%s', organisation_id='%d', validation=%t WHERE id = %d",
 		issue.Status, issue.Description, issue.OrganisationId, issue.Validation, issue.Id,
+	)
+
+	_, err = db.Db.Exec(sqlQuery)
+	if err != nil {
+		http.Error(w, Utils.CantWrite, http.StatusUnprocessableEntity)
+		return
+	}
+
+	sqlQuery = fmt.Sprintf("SELECT * FROM organisations WHERE id = %d", issue.OrganisationId)
+	organisation := Entities.Organisation{}
+	err = Utils.ReadItemFromDb(
+		db.Db,
+		sqlQuery,
+		&organisation.Id,
+		&organisation.Country,
+		&organisation.Name,
+		&organisation.ContactInfo,
+		&organisation.OrgType,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+	}
+
+	sqlQuery = fmt.Sprintf("CALL update_organisation(%d,'%s','%s','%s','%s')",
+		organisation.Id,
+		issue.OrganisationCountry,
+		issue.OrganisationName,
+		organisation.ContactInfo,
+		organisation.OrgType,
 	)
 
 	_, err = db.Db.Exec(sqlQuery)
@@ -635,3 +691,5 @@ func (db DBWrapper) UpdateIssue(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("Update issue")
 }
+
+//172.16.15.7:8080/messages?limit=10&page1&issue_id=1
