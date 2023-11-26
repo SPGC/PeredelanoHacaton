@@ -9,7 +9,6 @@ const MainPage = () => {
                 <TileRowInfoGeneral />
             </div>
             <div className="flex mt-2 flex-row justify-around flex-wrap gap-2 text-base bg-gray-700 p-2 rounded-md">
-                Что-то
             </div>
         </>
 

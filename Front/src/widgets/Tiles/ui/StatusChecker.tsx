@@ -9,7 +9,7 @@ const StatusChecker = () => {
 
     const checkServerStatus = async () => {
         try {
-            const response = await axios.get('/api/');
+            const response = await axios.get('https://geraback.fly.dev/');
             setServerStatus(response.status === 200 ? 'online' : 'offline');
         } catch (error) {
             setServerStatus('offline');

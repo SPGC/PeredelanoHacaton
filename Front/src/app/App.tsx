@@ -20,7 +20,7 @@ function App() {
         <SignedIn>
         <div className="bg-gray-900 text-4xl flex flex-row">
                     <Sidebar isOpen={true} />
-                    <div className="w-10/12 mx-auto p-3 h-screen text-white">
+                    <div className="w-10/12 mx-auto overflow-y-scroll p-3 h-screen text-white">
                         <AppRouter />
                     </div>
             </div>
