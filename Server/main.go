@@ -3,17 +3,32 @@ package main
 import (
 	"PeredelanoHakaton/Handlers"
 	"database/sql"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"net/http"
+	"os"
 )
 
 func RunServer() {
 	router := mux.NewRouter()
 
-	dbConnection, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
+	UserName := os.Getenv("POSTGRES_USER")
+	Host := os.Getenv("POSTGRES_HOST")
+	Password := os.Getenv("POSTGRES_PASSWORD")
+	Database := os.Getenv("POSTGRES_DATABASE")
+	//dbConnection, err := sql.Open(
+	//	"postgres",
+	//	fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", UserName, Database, Password, Host),
+	//)
+	dbConnection, err := sql.Open(
+		"postgres",
+		fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", UserName, Password, Host, Database),
+	)
+	//dbConnection, err := sql.Open("postgres", "user=postgres dbname=gerahelperdb password=12345678 host=localhost sslmode=disable")
 	if err != nil {
 		println("Can't access data base")
+		return
 	}
 	defer func(dbConnection *sql.DB) {
 		err := dbConnection.Close()
@@ -24,6 +39,7 @@ func RunServer() {
 	err = dbConnection.Ping()
 	if err != nil {
 		println("Can't access data base")
+		return
 	}
 
 	db := Handlers.DBWrapper{Db: dbConnection}
