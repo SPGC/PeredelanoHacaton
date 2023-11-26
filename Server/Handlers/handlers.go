@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,7 +38,7 @@ func readBody(body io.ReadCloser) string {
 }
 
 func Ping(_ http.ResponseWriter, _ *http.Request) {
-
+	log.Println("Pinged")
 }
 
 func (db DBWrapper) GetUserById(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +78,7 @@ func (db DBWrapper) GetUserById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-
+	log.Println("Get user by ID")
 }
 
 func (db DBWrapper) GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request) {
@@ -115,6 +116,7 @@ func (db DBWrapper) GetAllUsersWhereParam(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return
 	}
+	log.Println("Get users' list")
 }
 
 func (db DBWrapper) GetOrganisationById(w http.ResponseWriter, r *http.Request) {
@@ -159,6 +161,7 @@ func (db DBWrapper) GetOrganisationById(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return
 	}
+	log.Println("Get organisation by id")
 }
 
 func (db DBWrapper) GetAllOrganisationWhereParam(w http.ResponseWriter, r *http.Request) {
@@ -196,6 +199,7 @@ func (db DBWrapper) GetAllOrganisationWhereParam(w http.ResponseWriter, r *http.
 	if err != nil {
 		return
 	}
+	log.Println("Get organisations' list")
 }
 
 func (db DBWrapper) GetIssueById(w http.ResponseWriter, r *http.Request) {
@@ -232,6 +236,7 @@ func (db DBWrapper) GetIssueById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	log.Println("Get issue by ID")
 }
 
 func (db DBWrapper) GetAllIssuesWhereParam(w http.ResponseWriter, r *http.Request) {
@@ -273,6 +278,8 @@ func (db DBWrapper) GetAllIssuesWhereParam(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		return
 	}
+
+	log.Println("Get issues' list")
 }
 
 func (db DBWrapper) GetMessageById(w http.ResponseWriter, r *http.Request) {
@@ -307,6 +314,7 @@ func (db DBWrapper) GetMessageById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	log.Println("Get message by ID")
 }
 
 func (db DBWrapper) GetAllMessagesWhereParam(w http.ResponseWriter, r *http.Request) {
@@ -346,6 +354,7 @@ func (db DBWrapper) GetAllMessagesWhereParam(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return
 	}
+	log.Println("Get messages' list")
 }
 
 func (db DBWrapper) PostIssue(w http.ResponseWriter, r *http.Request) {
@@ -377,6 +386,7 @@ func (db DBWrapper) PostIssue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
+	log.Println("Post issue")
 }
 
 func (db DBWrapper) PostUser(w http.ResponseWriter, r *http.Request) {
@@ -402,6 +412,7 @@ func (db DBWrapper) PostUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
+	log.Println("Post user")
 }
 
 func (db DBWrapper) PostMessage(w http.ResponseWriter, r *http.Request) {
@@ -427,6 +438,7 @@ func (db DBWrapper) PostMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
+	log.Println("Post message")
 }
 
 func (db DBWrapper) PostOrganisation(w http.ResponseWriter, r *http.Request) {
@@ -452,6 +464,7 @@ func (db DBWrapper) PostOrganisation(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
+	log.Println("Post organisation")
 }
 
 func (db DBWrapper) DeleteUserById(w http.ResponseWriter, r *http.Request) {
@@ -469,7 +482,7 @@ func (db DBWrapper) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
-
+	log.Println("Delete user")
 }
 
 func (db DBWrapper) DeleteOrganisationById(w http.ResponseWriter, r *http.Request) {
@@ -485,7 +498,7 @@ func (db DBWrapper) DeleteOrganisationById(w http.ResponseWriter, r *http.Reques
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
-
+	log.Println("Delete organisation")
 }
 
 func (db DBWrapper) DeleteMessageById(w http.ResponseWriter, r *http.Request) {
@@ -501,7 +514,7 @@ func (db DBWrapper) DeleteMessageById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
-
+	log.Println("Delete message")
 }
 
 func (db DBWrapper) DeleteIssueById(w http.ResponseWriter, r *http.Request) {
@@ -517,6 +530,7 @@ func (db DBWrapper) DeleteIssueById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
+	log.Println("Delete issue")
 }
 
 func (db DBWrapper) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -540,6 +554,7 @@ func (db DBWrapper) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusServiceUnavailable)
 		return
 	}
+	log.Println("Update user")
 }
 
 func (db DBWrapper) UpdateMessage(w http.ResponseWriter, r *http.Request) {
@@ -563,6 +578,7 @@ func (db DBWrapper) UpdateMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusUnprocessableEntity)
 		return
 	}
+	log.Println("Update message")
 }
 
 func (db DBWrapper) UpdateOrganisation(w http.ResponseWriter, r *http.Request) {
@@ -592,6 +608,7 @@ func (db DBWrapper) UpdateOrganisation(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusUnprocessableEntity)
 		return
 	}
+	log.Println("Update organisation")
 }
 
 func (db DBWrapper) UpdateIssue(w http.ResponseWriter, r *http.Request) {
@@ -616,4 +633,5 @@ func (db DBWrapper) UpdateIssue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, Utils.CantWrite, http.StatusUnprocessableEntity)
 		return
 	}
+	log.Println("Update issue")
 }
